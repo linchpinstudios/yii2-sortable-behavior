@@ -190,10 +190,7 @@ class PivotRecord extends ActiveRecord {
         $class = static::aClass();
         $classPk = $class::primaryKey()[0];
         $pivId = static::aIdAttr();
-        $primaryKey = $b->getPrimaryKey();
-
-        if ($b->isNewRecord)
-            $primaryKey = 'null';
+        $primaryKey = !$b->isNewRecord ? $b->getPrimaryKey() : 0;
 
         $r = $class::find()->leftJoin(static::tableName() . ' p', "{{{$classPk}}}={{p}}.{{{$pivId}}}")
             ->where([static::bIdAttr() => $primaryKey]);
@@ -215,16 +212,14 @@ class PivotRecord extends ActiveRecord {
         $class = static::bClass();
         $classPk = $class::primaryKey()[0];
         $pivId = static::bIdAttr();
-        $primaryKey = $a->getPrimaryKey();
-
-        if ($a->isNewRecord)
-            $primaryKey = 'null';
+        $primaryKey = !$a->isNewRecord ? $a->getPrimaryKey() : 0;
 
         $r = $class::find()->leftJoin(static::tableName() . ' p', "{{{$classPk}}}={{p}}.{{{$pivId}}}")
             ->where([static::aIdAttr() => $primaryKey]);
         $r->multiple = true;
         if (static::bOrderAttr() !== false)
             $r->orderBy(static::bOrderAttr());
+
         return $r;
     }
 }

@@ -56,25 +56,25 @@ class PivotRecord extends ActiveRecord {
         }
         return static::$_tableName;
     }
-    
+
     public static function aIdAttr() {
         if (is_null(static::$a_id_attr))
             static::$a_id_attr = Inflector::camel2id(StringHelper::basename(static::aClass()), '_') . '_id';
         return static::$a_id_attr;
     }
-    
+
     public static function aOrderAttr() {
         if (is_null(static::$a_order_attr))
             static::$a_order_attr = Inflector::camel2id(StringHelper::basename(static::aClass()), '_') . '_ord';
         return static::$a_order_attr;
     }
-    
+
     public static function bIdAttr() {
         if (is_null(static::$b_id_attr))
             static::$b_id_attr = Inflector::camel2id(StringHelper::basename(static::bClass()), '_') . '_id';
         return static::$b_id_attr;
     }
-    
+
     public static function bOrderAttr() {
         if (is_null(static::$b_order_attr))
             static::$b_order_attr = Inflector::camel2id(StringHelper::basename(static::bClass()), '_') . '_ord';
@@ -190,8 +190,13 @@ class PivotRecord extends ActiveRecord {
         $class = static::aClass();
         $classPk = $class::primaryKey()[0];
         $pivId = static::aIdAttr();
+        $primaryKey = $b->getPrimaryKey();
+
+        if ($b->isNewRecord)
+            $primaryKey = 'null';
+
         $r = $class::find()->leftJoin(static::tableName() . ' p', "{{{$classPk}}}={{p}}.{{{$pivId}}}")
-            ->where([static::bIdAttr() => $b->getPrimaryKey()]);
+            ->where([static::bIdAttr() => $primaryKey]);
         $r->multiple = true;
         if (static::aOrderAttr() !== false)
             $r->orderBy(static::aOrderAttr());
@@ -210,8 +215,13 @@ class PivotRecord extends ActiveRecord {
         $class = static::bClass();
         $classPk = $class::primaryKey()[0];
         $pivId = static::bIdAttr();
+        $primaryKey = $a->getPrimaryKey();
+
+        if ($a->isNewRecord)
+            $primaryKey = 'null';
+
         $r = $class::find()->leftJoin(static::tableName() . ' p', "{{{$classPk}}}={{p}}.{{{$pivId}}}")
-            ->where([static::aIdAttr() => $a->getPrimaryKey()]);
+            ->where([static::aIdAttr() => $primaryKey]);
         $r->multiple = true;
         if (static::bOrderAttr() !== false)
             $r->orderBy(static::bOrderAttr());
